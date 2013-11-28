@@ -87,7 +87,7 @@ function unassign(node, keep) {
         latest;
 
     if (!curr) {
-        return;
+        return true;
     }
 
     while (curr && curr.type == 'AssignmentExpression') {
@@ -100,6 +100,8 @@ function unassign(node, keep) {
         }
         curr = curr.right;
     }
+
+    return assignment(node);
 }
 
 function squiggle(file, wanted) {
@@ -131,7 +133,7 @@ function squiggle(file, wanted) {
 
         newBody = [];
         main.body.forEach(function (node) {
-            unassign(node, function (node) {
+            var keep = unassign(node, function (node) {
                 var name = node.left.property.name;
                 return ~wanted.indexOf(name);
             });
@@ -140,7 +142,9 @@ function squiggle(file, wanted) {
                 console.error('exported ' + exps.map(function (f) { return f.property.name }).join(', '));
             }
 
-            newBody.push(node);
+            if (keep) {
+                newBody.push(node);
+            }
         });
         main.body = newBody;
 
