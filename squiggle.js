@@ -104,13 +104,34 @@ function unassign(node, keep) {
     return assignment(node);
 }
 
+function pruneExportedFunctions (body, options) {
+    var newBody = [],
+        wanted = options.wanted;
+
+    body.forEach(function (node) {
+        var keep = unassign(node, function (node) {
+            var name = node.left.property.name;
+            return ~wanted.indexOf(name);
+        });
+
+        if (exps = exported(node)) {
+            console.error('exported ' + exps.map(function (f) { return f.property.name }).join(', '));
+        }
+
+        if (keep) {
+            newBody.push(node);
+        }
+    });
+
+    return newBody;
+}
+
 function squiggle(file, wanted) {
     wanted.push('VERSION');
 
     fs.readFile(file, function (err, data) {
         var tree,
             main,
-            newBody,
             out;
 
         if (err) {
@@ -131,22 +152,7 @@ function squiggle(file, wanted) {
             return false;
         });
 
-        newBody = [];
-        main.body.forEach(function (node) {
-            var keep = unassign(node, function (node) {
-                var name = node.left.property.name;
-                return ~wanted.indexOf(name);
-            });
-
-            if (exps = exported(node)) {
-                console.error('exported ' + exps.map(function (f) { return f.property.name }).join(', '));
-            }
-
-            if (keep) {
-                newBody.push(node);
-            }
-        });
-        main.body = newBody;
+        main.body = pruneExportedFunctions(main.body, {wanted: wanted});
 
         // TODO: Avoid parsing again. uglify2 supports converting from esprima AST
         out = uglify.minify(escodegen.generate(tree), {
