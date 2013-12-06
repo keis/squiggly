@@ -5,6 +5,6 @@
         "escodegen": "~1.0.0",
         "esprima": "~1.0.4",
         "uglifyjs": "~2.3.6",
-        "underscore": "~1.5.6"
+        "underscore": "~1.5.2"
     }
 }
