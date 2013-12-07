@@ -7,18 +7,19 @@ var fs = require('fs'),
 function findScope(tree, key) {
     var q = [],
         scope,
+        info,
         node;
 
     function push(node) {
-        node.scope = scope;
-        q.push(node);
+        q.push({node: node, scope: scope});
     }
 
     push(tree);
 
-    while (node = q.pop()) {
+    while (info = q.pop()) {
+        node = info.node;
         if (key(node)) {
-            return node.scope;
+            return info.scope;
         }
 
         if (node.type == 'BlockStatement') {
