@@ -101,7 +101,7 @@ function unassign(node, keep) {
         curr = curr.right;
     }
 
-    return assignment(node);
+    return node.type === 'VariableDeclaration' || assignment(node);
 }
 
 function pruneExportedFunctions (body, options) {
