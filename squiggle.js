@@ -126,8 +126,34 @@ function pruneExportedFunctions (body, options) {
     return newBody;
 }
 
-function squiggle(file, wanted) {
-    wanted.push('VERSION');
+function noGlobalExport(body, options) {
+    return body.filter(function (node) {
+        if (node.type === 'IfStatement' && node.test.left && node.test.left.argument.name === 'exports') {
+            return false;
+        }
+        return true;
+    });
+}
+
+function noOOP(body, options) {
+    var oop = false;
+    return body.filter(function (node) {
+        if (oop) {
+            return (oop++ > 4)
+        }
+        return !(oop = node.declarations && node.declarations[0].id.name === 'result')
+    });
+}
+
+function squiggle(file, options) {
+    var transforms = [];
+
+    _.defaults(options, {wanted: [], patch: []});
+    options.wanted.push('VERSION');
+
+    ~options.patch.indexOf('disable-oop') && transforms.push(noOOP);
+    ~options.patch.indexOf('no-global') && transforms.push(noGlobalExport);
+    transforms.push(pruneExportedFunctions);
 
     fs.readFile(file, function (err, data) {
         var tree,
@@ -152,7 +178,9 @@ function squiggle(file, wanted) {
             return false;
         });
 
-        main.body = pruneExportedFunctions(main.body, {wanted: wanted});
+        main.body = _.reduce(transforms, function (body, phase) {
+            return phase(body, options);
+        }, main.body);
 
         // TODO: Avoid parsing again. uglify2 supports converting from esprima AST
         out = uglify.minify(escodegen.generate(tree), {
@@ -167,4 +195,22 @@ function squiggle(file, wanted) {
     });
 }
 
-squiggle(process.argv[2], process.argv.slice(3));
+require.main === module && (function main() {
+    var options = {},
+        argv,
+        source,
+        options;
+
+    argv = require('optimist')
+        .usage('$0 [options] sourcefile [function]...')
+        .demand(1)
+        .alias('p', 'patch')
+        .argv;
+
+    options.wanted = argv._.slice(1);
+    if (argv.patch) {
+        options.patch = typeof argv.patch === 'string' ? [argv.patch] : argv.patch;
+    }
+
+    squiggle(argv._[0], options);
+}());
