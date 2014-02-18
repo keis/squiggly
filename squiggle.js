@@ -129,10 +129,10 @@ function pruneExportedFunctions (body, options) {
 
 function noGlobalExport(body, options) {
     return body.filter(function (node) {
-        if (node.type === 'IfStatement' && node.test.left && node.test.left.argument.name === 'exports') {
-            return false;
-        }
-        return true;
+        return !(node.type === 'IfStatement' &&
+                 node.test.left &&
+                 node.test.left.argument &&
+                 node.test.left.argument.name === 'exports')
     });
 }
 
@@ -147,9 +147,13 @@ function noOOP(body, options) {
 }
 
 function squiggle(file, options) {
-    var transforms = [];
+    var transforms = [],
+        tag;
 
     _.defaults(options, {wanted: [], patch: []});
+    tag = 'squiggle ' +
+          'patches= ' + options.patch + ' ' +
+          'functions= ' + options.wanted;
     options.wanted.push('VERSION');
 
     ~options.patch.indexOf('disable-oop') && transforms.push(noOOP);
@@ -192,6 +196,7 @@ function squiggle(file, options) {
             output: { beautify: true }
         });
 
+        console.log('/*' + tag + '\n*/')
         console.log(out['code']);
     });
 }
