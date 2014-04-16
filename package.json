@@ -6,6 +6,6 @@
         "esprima": "~1.0.4",
         "uglifyjs": "~2.3.6",
         "underscore": "~1.5.2",
-        "optimist": "~0.6.1"
+        "yargs": "~1.2.1"
     }
 }

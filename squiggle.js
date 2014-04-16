@@ -148,17 +148,27 @@ function noOOP(body, options) {
 
 function squiggle(file, options) {
     var transforms = [],
+        patch = [],
         tag;
 
-    _.defaults(options, {wanted: [], patch: []});
-    tag = 'squiggle ' +
-          'patches= ' + options.patch + ' ' +
-          'functions= ' + options.wanted;
+    _.defaults(options, {wanted: []});
     options.wanted.push('VERSION');
 
-    ~options.patch.indexOf('disable-oop') && transforms.push(noOOP);
-    ~options.patch.indexOf('no-global') && transforms.push(noGlobalExport);
+    if (options['disable-oop']) {
+        patch.push('disable-oop');
+        transforms.push(noOOP);
+    }
+
+    if (options['disable-oop']) {
+        patch.push('no-global');
+        transforms.push(noGlobalExport);
+    }
+
     transforms.push(pruneExportedFunctions);
+
+    tag = 'squiggle ' +
+          'patches= ' + patch + ' ' +
+          'functions= ' + options.wanted;
 
     fs.readFile(file, function (err, data) {
         var tree,
@@ -203,20 +213,25 @@ function squiggle(file, options) {
 
 require.main === module && (function main() {
     var options = {},
+        yargs,
         argv,
         source,
         options;
 
-    argv = require('optimist')
+    yargs = require('yargs')
         .usage('$0 [options] sourcefile [function]...')
-        .demand(1)
-        .alias('p', 'patch')
-        .argv;
+        .describe('disable-oop', 'exclude oo wrapper')
+        .describe('no-global', "don't expose _ on global namespace");
+
+    argv = yargs.argv;
+
+    if (argv.help) {
+        yargs.showHelp();
+        return;
+    }
 
     options.wanted = argv._.slice(1);
-    if (argv.patch) {
-        options.patch = typeof argv.patch === 'string' ? [argv.patch] : argv.patch;
-    }
+    _.extend(options, _.pick(argv, ['disable-oop', 'no-global']));
 
     squiggle(argv._[0], options);
 }());
