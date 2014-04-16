@@ -146,6 +146,31 @@ function noOOP(body, options) {
     });
 }
 
+function rename(body, options) {
+    var name = options.rename;
+
+    function isAmdBlock(node) {
+        return (node.type === 'IfStatement' &&
+            node.test.left && node.test.left.type === 'BinaryExpression' &&
+            node.test.left.left.operator === 'typeof' &&
+            node.test.left.left.argument.name === 'define');
+    }
+
+    body.forEach(function (node) {
+        var expr;
+
+        if (isAmdBlock(node)) {
+            expr = node.consequent.body[0].expression;
+            if (expr.callee.name !== 'define') {
+                return;
+            }
+            expr.arguments[0].value = name;
+        }
+    });
+
+    return body;
+}
+
 function squiggle(file, options) {
     var transforms = [],
         patch = [],
@@ -162,6 +187,11 @@ function squiggle(file, options) {
     if (options['disable-oop']) {
         patch.push('no-global');
         transforms.push(noGlobalExport);
+    }
+
+    if (options.rename) {
+        patch.push('rename(' + options.rename + ')');
+        transforms.push(rename);
     }
 
     transforms.push(pruneExportedFunctions);
@@ -219,7 +249,9 @@ require.main === module && (function main() {
         options;
 
     yargs = require('yargs')
+        .demand(1)
         .usage('$0 [options] sourcefile [function]...')
+        .describe('rename', 'change name module is exposed as with amd')
         .describe('disable-oop', 'exclude oo wrapper')
         .describe('no-global', "don't expose _ on global namespace");
 
@@ -231,7 +263,7 @@ require.main === module && (function main() {
     }
 
     options.wanted = argv._.slice(1);
-    _.extend(options, _.pick(argv, ['disable-oop', 'no-global']));
+    _.extend(options, _.pick(argv, ['disable-oop', 'no-global', 'rename']));
 
     squiggle(argv._[0], options);
 }());
