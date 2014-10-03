@@ -1,6 +1,6 @@
 {
   "name": "squiggly",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "dependencies": {
     "escodegen": "~1.4.1",
     "esprima": "~1.2.2",
