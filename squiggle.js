@@ -1,4 +1,5 @@
 var fs = require('fs'),
+    Readable = require('stream').Readable,
     esprima = require('esprima'),
     escodegen = require('escodegen'),
     uglify = require('uglifyjs'),
@@ -174,17 +175,17 @@ function rename(body, options) {
 function squiggle(file, options) {
     var transforms = [],
         patch = [],
+        stream,
         tag;
 
     _.defaults(options, {wanted: []});
-    options.wanted.push('VERSION');
 
     if (options['disable-oop']) {
         patch.push('disable-oop');
         transforms.push(noOOP);
     }
 
-    if (options['disable-oop']) {
+    if (options['no-global']) {
         patch.push('no-global');
         transforms.push(noGlobalExport);
     }
@@ -199,6 +200,11 @@ function squiggle(file, options) {
     tag = 'squiggle ' +
           'patches= ' + patch + ' ' +
           'functions= ' + options.wanted;
+
+    options.wanted.push('VERSION');
+
+    stream = new Readable();
+    stream._read = function () {}
 
     fs.readFile(file, function (err, data) {
         var tree,
@@ -236,11 +242,16 @@ function squiggle(file, options) {
             output: { beautify: true }
         });
 
-        console.log('/*' + tag + '\n*/')
-        console.log(out['code']);
+        stream.push('/*' + tag + '\n*/\n');
+        stream.push(out['code']);
+        stream.push("\n");
+        stream.push(null);
     });
-}
 
+    return stream;
+};
+
+module.exports = squiggle;
 require.main === module && (function main() {
     var options = {},
         yargs,
@@ -265,5 +276,5 @@ require.main === module && (function main() {
     options.wanted = argv._.slice(1);
     _.extend(options, _.pick(argv, ['disable-oop', 'no-global', 'rename']));
 
-    squiggle(argv._[0], options);
+    squiggle(argv._[0], options).pipe(process.stdout);
 }());
