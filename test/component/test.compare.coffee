@@ -14,6 +14,8 @@ extractOptions = (path, callback) ->
 
         opts = {wanted, version}
         for p in patches
+            continue if p == ''
+
             m = p.match /([a-z-]+)(?:\(([a-z/]+)\))?/
             opts[m[1]] = m[2] or true
 
