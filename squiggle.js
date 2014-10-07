@@ -5,12 +5,16 @@ var fs = require('fs'),
     uglify = require('uglifyjs'),
     _ = require('underscore');
 
+// Perform a breadth-first search over the AST while keeping track of the
+// containing scope until the filter function `key` returns true. The scope is
+// returned.
 function findScope(tree, key) {
     var q = [],
         scope,
         info,
         node;
 
+    // Queue node for processing.
     function push(node) {
         q.push({node: node, scope: scope});
     }
@@ -19,9 +23,16 @@ function findScope(tree, key) {
 
     while (info = q.pop()) {
         node = info.node;
+        scope = info.scope;
+
+        // Stop processing and return the scope if this is the wanted node.
         if (key(node)) {
-            return info.scope;
+            return scope;
         }
+
+        // Add child nodes to visit from select attributes of this node, if the
+        // current node is a block it will be used as the scope for the child
+        // nodes otherwise the scope is inherited from the parent.
 
         if (node.type == 'BlockStatement') {
             scope = node;
@@ -46,6 +57,9 @@ function findScope(tree, key) {
     }
 }
 
+// Read or update the right hand value of a node representing an assignment
+// either as a plain expression or as a variable declaration with a
+// initializer. If no 2nd argument is given the value is not modified.
 function assignment(node, nval) {
     var i,
         d;
@@ -62,9 +76,12 @@ function assignment(node, nval) {
             }
         }
     }
+
     return null;
 }
 
+// Assemble a list of all names assigned to by the node. This method takes care
+// of resolving chaining of the assignment operator like `foo = bar = 5`.
 function exported(node) {
     var exported = [],
         right,
@@ -81,9 +98,11 @@ function exported(node) {
 
         return exported;
     }
-    return false;
+
+    return null;
 }
 
+// Prune all assigned names from node except those for which `keep` returns true.
 function unassign(node, keep) {
     var curr = assignment(node),
         latest;
@@ -92,6 +111,8 @@ function unassign(node, keep) {
         return true;
     }
 
+    // Walk the expression chain and prune assignments while making sure to
+    // close the gap.
     while (curr && curr.type == 'AssignmentExpression') {
         if (keep(curr)) {
             latest = curr;
@@ -103,24 +124,28 @@ function unassign(node, keep) {
         curr = curr.right;
     }
 
+    // Return truthy if there is anything left of the node.
     return node.type === 'VariableDeclaration' || assignment(node);
 }
 
+// Filter the values exported by `body` to only include those from the
+// `options.wanted` list.
 function pruneExportedFunctions (body, options) {
     var newBody = [],
         wanted = options.wanted;
 
+    function keep(node) {
+        return ~wanted.indexOf(node.left.property.name);
+    }
+
     body.forEach(function (node) {
-        var keep = unassign(node, function (node) {
-            var name = node.left.property.name;
-            return ~wanted.indexOf(name);
-        });
+        var keepNode = unassign(node, keep);
 
         if (exps = exported(node)) {
             console.error('exported ' + exps.map(function (f) { return f.property.name }).join(', '));
         }
 
-        if (keep) {
+        if (keepNode) {
             newBody.push(node);
         }
     });
@@ -128,6 +153,7 @@ function pruneExportedFunctions (body, options) {
     return newBody;
 }
 
+// Remove the assignment of `_` on the root object from the body.
 function noGlobalExport(body, options) {
     return body.filter(function (node) {
         return !(node.type === 'IfStatement' &&
@@ -137,6 +163,7 @@ function noGlobalExport(body, options) {
     });
 }
 
+// Remove the OO wrapper from the body.
 function noOOP(body, options) {
     var oop = false;
     return body.filter(function (node) {
@@ -147,6 +174,7 @@ function noOOP(body, options) {
     });
 }
 
+// Find the AMD define call and change the name.
 function rename(body, options) {
     var name = options.rename;
 
