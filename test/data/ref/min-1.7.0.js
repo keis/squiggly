@@ -1,16 +1,11 @@
 /*squiggle patches=  functions= each,invert,keys,isObject,mixin,functions
 */
 (function() {
-    var root = this;
-    root._;
-    var ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype, push = ArrayProto.push, toString = (ArrayProto.slice, 
-    ArrayProto.concat, ObjProto.toString);
-    ObjProto.hasOwnProperty;
-    var nativeKeys = (Array.isArray, Object.keys);
-    FuncProto.bind;
-    var _ = function(obj) {
-        return obj instanceof _ ? obj : this instanceof _ ? (this._wrapped = obj, void 0) : new _(obj);
-    };
+    var root = this, ArrayProto = (root._, Array.prototype), ObjProto = Object.prototype, FuncProto = Function.prototype, push = ArrayProto.push, toString = (ArrayProto.slice, 
+    ArrayProto.concat, ObjProto.toString), nativeKeys = (ObjProto.hasOwnProperty, Array.isArray, 
+    Object.keys), _ = (FuncProto.bind, function(obj) {
+        return obj instanceof _ ? obj : this instanceof _ ? void (this._wrapped = obj) : new _(obj);
+    });
     "undefined" != typeof exports ? ("undefined" != typeof module && module.exports && (exports = module.exports = _), 
     exports._ = _) : root._ = _, _.VERSION = "1.7.0";
     var createCallback = function(func, context, argCount) {
@@ -49,7 +44,8 @@
             for (i = 0, length = keys.length; length > i; i++) iteratee(obj[keys[i]], keys[i], obj);
         }
         return obj;
-    }, _.keys = function(obj) {
+    };
+    _.keys = function(obj) {
         if (!_.isObject(obj)) return [];
         if (nativeKeys) return nativeKeys(obj);
         var keys = [];
@@ -62,7 +58,8 @@
         var names = [];
         for (var key in obj) _.isFunction(obj[key]) && names.push(key);
         return names.sort();
-    }, _.isObject = function(obj) {
+    };
+    _.isObject = function(obj) {
         var type = typeof obj;
         return "function" === type || "object" === type && !!obj;
     }, _.each([ "Arguments", "Function", "String", "Number", "Date", "RegExp" ], function(name) {
@@ -81,11 +78,9 @@
         '"': "&quot;",
         "'": "&#x27;",
         "`": "&#x60;"
-    };
-    _.invert(escapeMap);
-    var result = function(obj) {
+    }, result = (_.invert(escapeMap), function(obj) {
         return this._chain ? _(obj).chain() : obj;
-    };
+    });
     _.mixin = function(obj) {
         _.each(_.functions(obj), function(name) {
             var func = _[name] = obj[name];

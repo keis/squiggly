@@ -1,18 +1,13 @@
 /*squiggle patches= rename(zoidberg) functions= 
 */
 (function() {
-    var root = this;
-    root._;
-    var breaker = {}, ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype, toString = (ArrayProto.push, 
-    ArrayProto.slice, ArrayProto.concat, ObjProto.toString);
-    ObjProto.hasOwnProperty;
-    var nativeForEach = ArrayProto.forEach;
-    ArrayProto.map, ArrayProto.reduce, ArrayProto.reduceRight, ArrayProto.filter, ArrayProto.every, 
-    ArrayProto.some, ArrayProto.indexOf, ArrayProto.lastIndexOf, Array.isArray, Object.keys, 
-    FuncProto.bind;
-    var _ = function(obj) {
-        return obj instanceof _ ? obj : this instanceof _ ? (this._wrapped = obj, void 0) : new _(obj);
-    };
+    var root = this, breaker = (root._, {}), ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype, toString = (ArrayProto.push, 
+    ArrayProto.slice, ArrayProto.concat, ObjProto.toString), nativeForEach = (ObjProto.hasOwnProperty, 
+    ArrayProto.forEach), _ = (ArrayProto.map, ArrayProto.reduce, ArrayProto.reduceRight, 
+    ArrayProto.filter, ArrayProto.every, ArrayProto.some, ArrayProto.indexOf, ArrayProto.lastIndexOf, 
+    Array.isArray, Object.keys, FuncProto.bind, function(obj) {
+        return obj instanceof _ ? obj : this instanceof _ ? void (this._wrapped = obj) : new _(obj);
+    });
     "undefined" != typeof exports ? ("undefined" != typeof module && module.exports && (exports = module.exports = _), 
     exports._ = _) : root._ = _, _.VERSION = "1.6.0";
     var each = function(obj, iterator, context) {
