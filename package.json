@@ -15,8 +15,8 @@
     "docs": "docco lib/*.js"
   },
   "dependencies": {
-    "escodegen": "~1.4.1",
-    "esprima": "~1.2.2",
+    "escodegen": "~1.6.1",
+    "esprima": "~2.2.0",
     "sinon": "^1.10.3",
     "uglifyjs": "~2.4.10",
     "underscore": "~1.8.3",
