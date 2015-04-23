@@ -1,16 +1,12 @@
 /*squiggle patches= disable-oop,no-global functions= each,map,keys,has,pick,defaults,extend,isFunction,isObject
 */
 (function() {
-    var root = this;
-    root._;
-    var breaker = {}, ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype, slice = (ArrayProto.push, 
+    var root = this, breaker = (root._, {}), ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype, slice = (ArrayProto.push, 
     ArrayProto.slice), concat = ArrayProto.concat, toString = ObjProto.toString, hasOwnProperty = ObjProto.hasOwnProperty, nativeForEach = ArrayProto.forEach, nativeMap = ArrayProto.map, nativeKeys = (ArrayProto.reduce, 
     ArrayProto.reduceRight, ArrayProto.filter, ArrayProto.every, ArrayProto.some, ArrayProto.indexOf, 
-    ArrayProto.lastIndexOf, Array.isArray, Object.keys);
-    FuncProto.bind;
-    var _ = function(obj) {
-        return obj instanceof _ ? obj : this instanceof _ ? (this._wrapped = obj, void 0) : new _(obj);
-    };
+    ArrayProto.lastIndexOf, Array.isArray, Object.keys), _ = (FuncProto.bind, function(obj) {
+        return obj instanceof _ ? obj : this instanceof _ ? void (this._wrapped = obj) : new _(obj);
+    });
     _.VERSION = "1.6.0";
     var each = _.each = function(obj, iterator, context) {
         if (null == obj) return obj;
@@ -24,7 +20,8 @@
         return null == obj ? results : nativeMap && obj.map === nativeMap ? obj.map(iterator, context) : (each(obj, function(value, index, list) {
             results.push(iterator.call(context, value, index, list));
         }), results);
-    }, _.keys = function(obj) {
+    };
+    _.keys = function(obj) {
         if (!_.isObject(obj)) return [];
         if (nativeKeys) return nativeKeys(obj);
         var keys = [];
@@ -43,7 +40,8 @@
         return each(slice.call(arguments, 1), function(source) {
             if (source) for (var prop in source) void 0 === obj[prop] && (obj[prop] = source[prop]);
         }), obj;
-    }, _.isObject = function(obj) {
+    };
+    _.isObject = function(obj) {
         return obj === Object(obj);
     }, each([ "Arguments", "Function", "String", "Number", "Date", "RegExp" ], function(name) {
         _["is" + name] = function(obj) {
@@ -74,7 +72,8 @@
                 return entityMap[method][match];
             });
         };
-    }), "function" == typeof define && define.amd && define("underscore", [], function() {
+    });
+    "function" == typeof define && define.amd && define("underscore", [], function() {
         return _;
     });
 }).call(this);
