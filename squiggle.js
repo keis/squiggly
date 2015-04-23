@@ -302,7 +302,10 @@ require.main === module && (function main() {
     }
 
     options.wanted = argv._.slice(1);
-    _.extend(options, _.pick(argv, ['disable-oop', 'no-global', 'rename']));
+    _.extend(options, _.pick(argv, ['disable-oop', 'rename']));
+    if (argv.global === false) {
+        options['no-global'] = true;
+    }
 
     squiggle(argv._[0], options).pipe(process.stdout);
 }());
