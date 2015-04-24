@@ -9,6 +9,7 @@
   "author": "David Keijser <keijser@gmail.com>",
   "license": "ISC",
   "scripts": {
+    "lint": "eslint squiggle.js test/bootstrap.js",
     "test": "mocha --require test/bootstrap.js --compilers coffee:coffee-script/register --recursive test/component",
     "coverage": "istanbul cover _mocha --report lcovonly -- --require test/bootstrap.js --compilers coffee:coffee-script/register --recursive test/component",
     "billom": "billom package.json \"$npm_package_name\" > package.html",
@@ -28,6 +29,7 @@
     "coffee-script": "~1.9.0",
     "coveralls": "^2.11.1",
     "docco": "^0.7.0",
+    "eslint": "^0.19.0",
     "istanbul": "^0.3.2",
     "mocha": "^2.2.4"
   }
